@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch 2.x">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
-  <a href="https://colab.research.google.com/github/Marzban-io/rain-snow-hail-classifier/blob/main/notebooks/rain_snow_hail_classifier.ipynb">
+  <a href="https://colab.research.google.com/github/Marzban-io/rain-snow-hail-classifier/blob/main/rain_snow_hail_classifier.ipynb">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
   </a>
 </p>
@@ -74,94 +74,6 @@ Run the notebook to populate this section — it prints the test metrics and wri
 
 > Metrics are reported on a held-out test split that is used exactly once, after model selection on the validation split. No test data influences training or checkpoint selection.
 
-## Quickstart
-
-### Run in Colab (recommended)
-
-1. Click the **Open In Colab** badge above (update `Marzban-io` in the link once the repo is pushed).
-2. Set **Runtime → Change runtime type → T4 GPU**.
-3. **Runtime → Run all.** The notebook will prompt you once for a Kaggle API token.
-
-<details>
-<summary><b>Getting a Kaggle API token</b> (free, one minute)</summary>
-
-The dataset is hosted on Kaggle, which requires an API token to download programmatically:
-
-1. Sign in at [kaggle.com](https://www.kaggle.com).
-2. Go to **Account settings → API → Create New Token**.
-3. A `kaggle.json` file downloads. Upload it when the notebook asks.
-
-`kaggle.json` is a credential. It is listed in `.gitignore` and must never be committed.
-</details>
-
-### Run locally
-
-```bash
-git clone https://github.com/Marzban-io/rain-snow-hail-classifier.git
-cd rain-snow-hail-classifier
-
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-
-# place kaggle.json at ~/.kaggle/kaggle.json, then:
-jupyter notebook notebooks/rain_snow_hail_classifier.ipynb
-```
-
-A CUDA GPU is optional; the notebook falls back to CPU automatically (slower, but the dataset is small enough that it remains practical).
-
-## Inference
-
-Once you have a trained checkpoint:
-
-```bash
-# single image
-python predict.py --image photo.jpg
-
-# a whole directory, top-2 classes each
-python predict.py --image ./photos --topk 2
-
-# machine-readable output
-python predict.py --image photo.jpg --json
-```
-
-```
-photo.jpg
-  -> hail  (94.2% confidence)
-     hail    94.2% ############################
-     snow     4.1% #
-     rain     1.7%
-```
-
-Or from Python:
-
-```python
-import torch
-from PIL import Image
-from predict import load_classifier, predict
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model, preprocess, class_names = load_classifier("rain_snow_hail_classifier.pth", device)
-
-print(predict(model, preprocess, class_names, "photo.jpg", device))
-# [('hail', 0.942), ('snow', 0.041), ('rain', 0.017)]
-```
-
-The checkpoint stores its own class names and preprocessing constants, so inference never depends on constants copy-pasted from the training code — a common source of silent accuracy loss.
-
-## Project structure
-
-```
-.
-├── notebooks/
-│   └── rain_snow_hail_classifier.ipynb   # end-to-end training pipeline
-├── predict.py                            # command-line inference
-├── requirements.txt                      # local (non-Colab) dependencies
-├── LICENSE
-└── README.md
-```
-
-Generated at runtime and deliberately **not** tracked by git: the downloaded dataset (`data/`), trained weights (`*.pth`, `*.pt`), and `kaggle.json`. See [Model artifacts](#model-artifacts).
-
 ## Dataset
 
 [Weather Image Recognition](https://www.kaggle.com/datasets/jehanbhathena/weather-dataset) — approximately 6,800 photographs across 11 weather phenomena (dew, fog/smog, frost, glaze, hail, lightning, rain, rainbow, rime, sandstorm, snow). The notebook keeps the `rain`, `snow`, and `hail` folders and discards the rest; class-folder discovery is automatic, so it tolerates changes to the archive's directory layout.
@@ -202,23 +114,6 @@ git add .gitattributes
 - [ ] Grad-CAM visualisations to confirm the model attends to precipitation rather than background scene cues
 - [ ] Test-time augmentation and calibration (temperature scaling) for better-behaved confidence scores
 - [ ] ONNX export path alongside TorchScript
-
-## Citation
-
-If you use this work, please cite the underlying dataset:
-
-```bibtex
-@article{xiao2021weather,
-  title   = {Classification of Weather Phenomenon From Images by Using Deep Convolutional Neural Network},
-  author  = {Xiao, Haixia and Zhang, Feng and Shen, Zhongping and Wu, Kun and Zhang, Jinglin},
-  journal = {Earth and Space Science},
-  volume  = {8},
-  number  = {5},
-  year    = {2021},
-  doi     = {10.1029/2020EA001604}
-}
-```
-
 Original dataset release: [Harvard Dataverse, doi:10.7910/DVN/M8JQCR](https://doi.org/10.7910/DVN/M8JQCR)
 
 ## License
