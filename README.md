@@ -67,8 +67,8 @@ Fine-tuning runs in two phases for a reason worth stating: unfreezing a pretrain
 | Training time (Colab T4) | 4M |
 
 <p align="center">
-  <img src="results/training_curves.png" width="320" alt="Training curves">
-  <img src="results/confusion_matrix.png" width="320" alt="Confusion matrix">
+  <img src="results/training_curves.png" height="320" alt="Training curves">
+  <img src="results/confusion_matrix.png" height="320" alt="Confusion matrix">
 </p>
 
 
