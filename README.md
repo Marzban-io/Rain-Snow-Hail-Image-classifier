@@ -59,7 +59,6 @@ Fine-tuning runs in two phases for a reason worth stating: unfreezing a pretrain
 
 ## Results
 
-Run the notebook to populate this section — it prints the test metrics and writes both figures automatically.
 
 | Metric | Value |
 | --- | --- |
@@ -72,7 +71,6 @@ Run the notebook to populate this section — it prints the test metrics and wri
   <img src="results/confusion_matrix.png" width="49%" alt="Confusion matrix">
 </p>
 
-> Metrics are reported on a held-out test split that is used exactly once, after model selection on the validation split. No test data influences training or checkpoint selection.
 
 ## Dataset
 
