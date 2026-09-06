@@ -66,10 +66,16 @@ Fine-tuning runs in two phases for a reason worth stating: unfreezing a pretrain
 | Macro F1 | .955 |
 | Training time (Colab T4) | 4M |
 
-<p align="center">
-  <img src="results/training_curves.png" height="320" alt="Training curves">
-  <img src="results/confusion_matrix.png" height="320" alt="Confusion matrix">
-</p>
+<table>
+  <tr>
+    <td align="center" valign="middle">
+      <img src="results/training_curves.png" width="450" alt="Training curves">
+    </td>
+    <td align="center" valign="middle">
+      <img src="results/confusion_matrix.png" width="300" alt="Confusion matrix">
+    </td>
+  </tr>
+</table>
 
 
 ## Dataset
