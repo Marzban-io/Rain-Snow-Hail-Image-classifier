@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white" alt="Python 3.9+">
   <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch 2.x">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
-  <a href="https://colab.research.google.com/github/Marzban-io/rain-snow-hail-classifier/blob/main/notebooks/rain_snow_hail_classifier.ipynb">
+  <a href="https://colab.research.google.com/github/Marzban-io/rain-snow-hail-classifier/blob/main/rain_snow_hail_classifier.ipynb">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
   </a>
 </p>
