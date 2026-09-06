@@ -64,16 +64,15 @@ Run the notebook to populate this section — it prints the test metrics and wri
 
 | Metric | Value |
 | --- | --- |
-| Test accuracy | _fill in after training_ |
-| Macro F1 | _fill in after training_ |
-| Training time (Colab T4) | _fill in after training_ |
+| Test accuracy | 91.477% |
+| Macro F1 | 0.914 |
+| Training time (Colab T4) | 4M |
 
 <p align="center">
   <img src="results/training_curves.png" width="49%" alt="Training curves">
   <img src="results/confusion_matrix.png" width="49%" alt="Confusion matrix">
 </p>
 
-> Metrics are reported on a held-out test split that is used exactly once, after model selection on the validation split. No test data influences training or checkpoint selection.
 
 ## The `none` class
 
