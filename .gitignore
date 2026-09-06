@@ -1,0 +1,24 @@
+# Kaggle credentials — never commit this
+kaggle.json
+
+# Downloaded dataset and generated splits (large, and Kaggle ToS-restricted redistribution)
+data/
+
+# Trained model weights (large binaries — see README for how to share these instead)
+*.pth
+*.pt
+
+# Notebook checkpoints / Python cache
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# OS / editor cruft
+.DS_Store
+.vscode/
+.idea/
+
+# Virtual environments
+.venv/
+venv/
+env/
