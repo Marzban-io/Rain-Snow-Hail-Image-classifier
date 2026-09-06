@@ -111,22 +111,6 @@ In Colab, set `UPLOAD_LOCAL_ZIP = True` in cell 3c and upload a `.zip` with that
 
 Roughly 50–100 photos per class from the real deployment environment are worth more than another thousand generic internet images. Include `none` examples: photos of the same scenes on ordinary days are exactly what teaches the model to stop crying rain.
 
-## Project structure
-
-```
-.
-├── notebooks/
-│   └── rain_snow_hail_classifier.ipynb   # end-to-end training pipeline
-├── predict.py                            # command-line inference
-├── results/                              # training curves + confusion matrix
-├── requirements.txt                      # local (non-Colab) dependencies
-├── LICENSE
-└── README.md
-```
-
-`local_data/` is created by the notebook for your own photos (see [Adding your own photos](#adding-your-own-photos)) and is not tracked by git — your images stay on your machine.
-
-Generated at runtime and deliberately **not** tracked by git: the downloaded dataset (`data/`), your own photos (`local_data/`), trained weights (`*.pth`, `*.pt`), and `kaggle.json`. See [Model artifacts](#model-artifacts).
 
 ## Dataset
 
