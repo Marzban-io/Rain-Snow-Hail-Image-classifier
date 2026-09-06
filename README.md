@@ -116,22 +116,6 @@ git add .gitattributes
 - [ ] Test-time augmentation and calibration (temperature scaling) for better-behaved confidence scores
 - [ ] ONNX export path alongside TorchScript
 
-## Citation
-
-If you use this work, please cite the underlying dataset:
-
-```bibtex
-@article{xiao2021weather,
-  title   = {Classification of Weather Phenomenon From Images by Using Deep Convolutional Neural Network},
-  author  = {Xiao, Haixia and Zhang, Feng and Shen, Zhongping and Wu, Kun and Zhang, Jinglin},
-  journal = {Earth and Space Science},
-  volume  = {8},
-  number  = {5},
-  year    = {2021},
-  doi     = {10.1029/2020EA001604}
-}
-```
-
 Original dataset release: [Harvard Dataverse, doi:10.7910/DVN/M8JQCR](https://doi.org/10.7910/DVN/M8JQCR)
 
 ## License
