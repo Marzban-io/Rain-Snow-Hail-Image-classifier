@@ -1,7 +1,7 @@
 <h1 align="center">Rain / Snow / Hail Classifier</h1>
 
 <p align="center">
-  <b>Precipitation-type recognition from a single RGB photo.</b><br>
+  <b>Precipitation-type recognition from a single RGB photo — rain, snow, hail, or none.</b><br>
   ResNet-18 transfer learning in PyTorch — from raw dataset to a deployable model in one notebook.
 </p>
 
@@ -35,7 +35,8 @@ The whole pipeline — dataset download, preprocessing, two-phase fine-tuning, e
 ```mermaid
 flowchart LR
     A[Kaggle weather dataset<br/>11 classes] --> B[Filter to<br/>rain / snow / hail]
-    B --> C[Stratified split<br/>70 / 15 / 15]
+    B --> B2[Build balanced none class<br/>other phenomena + clear sky + your photos]
+    B2 --> C[Stratified split<br/>70 / 15 / 15]
     C --> D[Augment<br/>crop · flip · jitter · rotate]
     D --> E[Phase 1<br/>frozen backbone<br/>train new head]
     E --> F[Phase 2<br/>unfreeze all<br/>fine-tune at low LR]
@@ -50,7 +51,7 @@ Fine-tuning runs in two phases for a reason worth stating: unfreezing a pretrain
 | Component | Choice |
 | --- | --- |
 | Backbone | ResNet-18, ImageNet-pretrained |
-| Head | Dropout(0.3) → Linear(512, 3) |
+| Head | Dropout(0.3) → Linear(512, `n_classes`) |
 | Input | 224 × 224 RGB, ImageNet normalisation |
 | Augmentation | RandomResizedCrop(0.8–1.0), horizontal flip, colour jitter, ±10° rotation |
 | Optimiser | Adam, weight decay 1e-4, `ReduceLROnPlateau` |
@@ -59,24 +60,156 @@ Fine-tuning runs in two phases for a reason worth stating: unfreezing a pretrain
 
 ## Results
 
+Run the notebook to populate this section — it prints the test metrics and writes both figures automatically.
 
 | Metric | Value |
 | --- | --- |
-| Test accuracy | 95.455%|
-| Macro F1 | .955 |
-| Training time (Colab T4) | 4M |
+| Test accuracy | _fill in after training_ |
+| Macro F1 | _fill in after training_ |
+| Training time (Colab T4) | _fill in after training_ |
 
-<table>
-  <tr>
-    <td align="center" valign="middle">
-      <img src="results/training_curves.png" width="600" alt="Training curves">
-    </td>
-    <td align="center" valign="middle">
-      <img src="results/confusion_matrix.png" width="350" alt="Confusion matrix">
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <img src="results/training_curves.png" width="49%" alt="Training curves">
+  <img src="results/confusion_matrix.png" width="49%" alt="Confusion matrix">
+</p>
 
+> Metrics are reported on a held-out test split that is used exactly once, after model selection on the validation split. No test data influences training or checkpoint selection.
+
+## Quickstart
+
+### Run in Colab (recommended)
+
+1. Click the **Open In Colab** badge above.
+2. Set **Runtime → Change runtime type → T4 GPU**.
+3. **Runtime → Run all.** The notebook will prompt you once for a Kaggle API token.
+
+<details>
+<summary><b>Getting a Kaggle API token</b> (free, one minute)</summary>
+
+The dataset is hosted on Kaggle, which requires an API token to download programmatically:
+
+1. Sign in at [kaggle.com](https://www.kaggle.com).
+2. Go to **Account settings → API → Create New Token**.
+3. A `kaggle.json` file downloads. Upload it when the notebook asks.
+
+`kaggle.json` is a credential. It is listed in `.gitignore` and must never be committed.
+</details>
+
+### Run locally
+
+```bash
+git clone https://github.com/Marzban-io/Rain-Snow-Hail-Image-classifier.git
+cd Rain-Snow-Hail-Image-classifier
+
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# place kaggle.json at ~/.kaggle/kaggle.json, then:
+jupyter notebook notebooks/rain_snow_hail_classifier.ipynb
+```
+
+A CUDA GPU is optional; the notebook falls back to CPU automatically (slower, but the dataset is small enough that it remains practical).
+
+## Inference
+
+Once you have a trained checkpoint:
+
+```bash
+# single image
+python predict.py --image photo.jpg
+
+# a whole directory, top-2 classes each
+python predict.py --image ./photos --topk 2
+
+# machine-readable output
+python predict.py --image photo.jpg --json
+
+# require higher confidence before committing to a label (default: 0.6)
+python predict.py --image photo.jpg --min-confidence 0.75
+```
+
+```
+photo.jpg
+  -> hail  (94.2% confidence)
+     hail    94.2% ############################
+     snow     4.1% #
+     rain     1.7%
+
+sunny_field.jpg
+  -> none  (88.7% confidence)
+     none    88.7% ###########################
+     rain     7.1% ##
+     snow     2.9% #
+```
+
+Or from Python:
+
+```python
+import torch
+from PIL import Image
+from predict import load_classifier, predict
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model, preprocess, class_names = load_classifier("rain_snow_hail_classifier.pth", device)
+
+print(predict(model, preprocess, class_names, "photo.jpg", device))
+# [('hail', 0.942), ('snow', 0.041), ('rain', 0.017)]
+```
+
+The checkpoint stores its own class names and preprocessing constants, so inference never depends on constants copy-pasted from the training code — a common source of silent accuracy loss.
+
+## The `none` class
+
+A 3-class model has no way to say "there is no precipitation here": softmax always spreads 100% of its probability across rain, snow and hail, so a photo of a sunny field comes back as *rain, 92% confident*. Adding a fourth `none` class is the fix, and the notebook assembles one from up to three sources:
+
+| Source | Availability | Contributes |
+| --- | --- | --- |
+| **A** — the main dataset's other 8 phenomena (dew, fog/smog, frost, glaze, lightning, rainbow, rime, sandstorm) | always | weather scenes that are not rain/snow/hail |
+| **B** — a second public dataset of clear/sunrise/cloudy photos | optional, auto-downloaded | plain sunny and overcast skies |
+| **C** — your own labelled photos in `local_data/` | optional | the environment the model will actually run in |
+
+Sources B and C are both optional and failure-tolerant: if the download fails or you have no local photos, the notebook says so and carries on. Source A alone trains a working 4-class model.
+
+Two design details worth knowing. The `none` class is **balanced** against the positive classes by round-robin sampling across its source folders — left unchecked, eight folders would make `none` several times larger than any real class and the model would simply learn to answer `none`. And your own photos are **never dropped** by that balancing step: local data is the scarcest and most relevant material available, so it is always kept in full.
+
+Set `INCLUDE_NONE_CLASS = False` in the notebook to return to the original 3-class behaviour.
+
+**Expect overall accuracy to fall slightly** compared to a 3-class model. That is not a regression — a 4-way problem is harder than a 3-way one, and the 3-class number was flattered by a task that excluded the hardest inputs. Judge the change by whether real-world false alarms go down.
+
+`none` covers negatives that resemble what it was trained on; it is a large improvement, not a guarantee against every possible photo. `predict.py --min-confidence` (default 0.6) remains as a second line of defence, reporting `uncertain` when the top score is low. It catches hesitation, not confident errors — those need better training data, not a better threshold.
+
+## Adding your own photos
+
+Put them in `local_data/`, one folder per class — any subset works, and missing folders are skipped:
+
+```
+local_data/
+├── rain/     your photos of rain
+├── snow/     your photos of snow
+├── hail/     your photos of hail
+└── none/     your photos with NO rain/snow/hail (sunny, dry, overcast, ...)
+```
+
+In Colab, set `UPLOAD_LOCAL_ZIP = True` in cell 3c and upload a `.zip` with that structure, or mount Google Drive and point `LOCAL_DATA_DIR` at a folder there. Nesting inside the zip doesn't matter — class folders are found recursively, so `local_data/my_photos/2026/rain/` works too.
+
+Roughly 50–100 photos per class from the real deployment environment are worth more than another thousand generic internet images. Include `none` examples: photos of the same scenes on ordinary days are exactly what teaches the model to stop crying rain.
+
+## Project structure
+
+```
+.
+├── notebooks/
+│   └── rain_snow_hail_classifier.ipynb   # end-to-end training pipeline
+├── predict.py                            # command-line inference
+├── results/                              # training curves + confusion matrix
+├── requirements.txt                      # local (non-Colab) dependencies
+├── LICENSE
+└── README.md
+```
+
+`local_data/` is created by the notebook for your own photos (see [Adding your own photos](#adding-your-own-photos)) and is not tracked by git — your images stay on your machine.
+
+Generated at runtime and deliberately **not** tracked by git: the downloaded dataset (`data/`), your own photos (`local_data/`), trained weights (`*.pth`, `*.pt`), and `kaggle.json`. See [Model artifacts](#model-artifacts).
 
 ## Dataset
 
@@ -118,6 +251,23 @@ git add .gitattributes
 - [ ] Grad-CAM visualisations to confirm the model attends to precipitation rather than background scene cues
 - [ ] Test-time augmentation and calibration (temperature scaling) for better-behaved confidence scores
 - [ ] ONNX export path alongside TorchScript
+
+## Citation
+
+If you use this work, please cite the underlying dataset:
+
+```bibtex
+@article{xiao2021weather,
+  title   = {Classification of Weather Phenomenon From Images by Using Deep Convolutional Neural Network},
+  author  = {Xiao, Haixia and Zhang, Feng and Shen, Zhongping and Wu, Kun and Zhang, Jinglin},
+  journal = {Earth and Space Science},
+  volume  = {8},
+  number  = {5},
+  year    = {2021},
+  doi     = {10.1029/2020EA001604}
+}
+```
+
 Original dataset release: [Harvard Dataverse, doi:10.7910/DVN/M8JQCR](https://doi.org/10.7910/DVN/M8JQCR)
 
 ## License
